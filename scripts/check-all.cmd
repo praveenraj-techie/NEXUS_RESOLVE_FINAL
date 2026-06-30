@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 
 set "ROOT=%~dp0.."
 set "BACKEND=%ROOT%\services\backend"
@@ -18,15 +18,18 @@ if not defined NPM_CMD (
 )
 for %%I in ("%NPM_CMD%") do set "NODE_DIR=%%~dpI"
 
-pushd "%BACKEND%" || exit /b 1
-call "%PYTHON%" -m pytest || exit /b %errorlevel%
+pushd "!BACKEND!" || exit /b 1
+call "!PYTHON!" -m pytest || exit /b %errorlevel%
 popd
 
 set "PATH=%NODE_DIR%;%PATH%"
-pushd "%DASHBOARD%" || exit /b 1
-call "%NPM_CMD%" run lint || exit /b %errorlevel%
-call "%NPM_CMD%" run test || exit /b %errorlevel%
-call "%NPM_CMD%" run build || exit /b %errorlevel%
+pushd "!DASHBOARD!" || exit /b 1
+if exist "!DASHBOARD!\node_modules\.vite" rmdir /s /q "!DASHBOARD!\node_modules\.vite"
+if exist "!DASHBOARD!\node_modules\.vite-temp" rmdir /s /q "!DASHBOARD!\node_modules\.vite-temp"
+if exist "!DASHBOARD!\node_modules\.cache" rmdir /s /q "!DASHBOARD!\node_modules\.cache"
+call "!NPM_CMD!" run lint || exit /b %errorlevel%
+call "!NPM_CMD!" run test || exit /b %errorlevel%
+call "!NPM_CMD!" run build || exit /b %errorlevel%
 popd
 
 echo NEXUS-RESOLVE checks passed.
@@ -34,13 +37,13 @@ echo NEXUS-RESOLVE checks passed.
 exit /b 0
 
 :ensure_local_setup
-if exist "%PYTHON%" (
-  if exist "%DASHBOARD%\node_modules\.bin\vite.cmd" (
+if exist "!PYTHON!" (
+  if exist "!DASHBOARD!\node_modules\.bin\vite.cmd" (
     exit /b 0
   )
 )
 echo First run setup required. Running scripts\setup-all.cmd...
-call "%ROOT%\scripts\setup-all.cmd"
+call "!ROOT!\scripts\setup-all.cmd"
 if errorlevel 1 (
   echo.
   echo Automatic setup failed. Install Python 3.11+ and Node.js 20+, then rerun this script.

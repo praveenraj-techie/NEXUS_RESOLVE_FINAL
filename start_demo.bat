@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 
 if /I "%~1"=="--inner" (
   shift /1
@@ -14,15 +14,15 @@ exit /b 0
 
 :launcher_body
 set "ROOT=%~dp0"
-set "PRODUCT=%ROOT%"
+set "PRODUCT=!ROOT!"
 set "DEFAULT_OPENAI_API_KEY="
 
-cd /d "%ROOT%" || exit /b 1
+cd /d "!ROOT!" || exit /b 1
 
 if /I "%~1"=="--dry-run" (
   echo Would run combined NEXUS-RESOLVE launcher.
-  echo Root:    %ROOT%
-  echo Product: %PRODUCT%
+  echo Root:    !ROOT!
+  echo Product: !PRODUCT!
   echo Main menu:
   echo   1. Use offline Demo
   echo   2. Use with OpenAI Key online demo
@@ -37,9 +37,9 @@ if /I "%~1"=="--offline" goto offline_demo
 if /I "%~1"=="--openai" goto openai_demo
 if /I "%~1"=="--servicenow" goto servicenow_demo
 
-if not exist "%PRODUCT%\scripts\start-demo.cmd" (
+if not exist "!PRODUCT!\scripts\start-demo.cmd" (
   echo ERROR: The NEXUS product scripts were not found:
-  echo   %PRODUCT%
+  echo   !PRODUCT!
   echo.
   echo Make sure this file is in the NEXUS_RESOLVE_FINAL project root.
   echo If you opened it from inside the downloaded ZIP, extract the ZIP first,
@@ -53,8 +53,8 @@ cls
 echo ============================================================
 echo NEXUS-RESOLVE COMBINED DEMO LAUNCHER
 echo ============================================================
-echo Root folder:    %ROOT%
-echo Product folder: %PRODUCT%
+echo Root folder:    !ROOT!
+echo Product folder: !PRODUCT!
 echo.
 echo Choose demo mode:
 echo.
@@ -143,8 +143,8 @@ echo Starting ServiceNow guided setup and live verifier.
 echo If the setup asks for OpenAI API key, press Enter to keep the key
 echo selected in this launcher.
 echo.
-cd /d "%PRODUCT%" || exit /b 1
-call "%PRODUCT%\scripts\live-servicenow-demo.cmd"
+cd /d "!PRODUCT!" || exit /b 1
+call "!PRODUCT!\scripts\live-servicenow-demo.cmd"
 if errorlevel 1 goto failed
 call :open_tabs
 call :ready "OpenAI + ServiceNow ITSM demo is ready."
@@ -188,8 +188,8 @@ exit /b 0
 :ensure_local_setup
 echo.
 echo Checking local first-run setup...
-if exist "%PRODUCT%\services\backend\.venv\Scripts\python.exe" (
-  if exist "%PRODUCT%\apps\dashboard\node_modules\.bin\vite.cmd" (
+if exist "!PRODUCT!\services\backend\.venv\Scripts\python.exe" (
+  if exist "!PRODUCT!\apps\dashboard\node_modules\.bin\vite.cmd" (
     echo Local Python environment and dashboard packages are ready.
     exit /b 0
   )
@@ -198,17 +198,17 @@ echo First run detected. Installing local project dependencies now.
 echo This creates services\backend\.venv and apps\dashboard\node_modules.
 echo It can take a few minutes on a new machine.
 echo.
-if not exist "%PRODUCT%\scripts\setup-all.cmd" (
+if not exist "!PRODUCT!\scripts\setup-all.cmd" (
   echo ERROR: setup-all.cmd was not found under:
-  echo   %PRODUCT%\scripts
+  echo   !PRODUCT!\scripts
   echo.
   echo If you opened this from inside the downloaded ZIP, extract the ZIP first,
   echo then run start_demo.bat from the extracted folder.
   pause
   exit /b 1
 )
-cd /d "%PRODUCT%" || exit /b 1
-call "%PRODUCT%\scripts\setup-all.cmd"
+cd /d "!PRODUCT!" || exit /b 1
+call "!PRODUCT!\scripts\setup-all.cmd"
 if errorlevel 1 (
   echo.
   echo ERROR: Automatic first-run setup failed.
@@ -222,8 +222,8 @@ exit /b 0
 :verify_openai
 echo.
 echo Verifying real OpenAI workflow...
-cd /d "%PRODUCT%" || exit /b 1
-call "%PRODUCT%\scripts\verify-live-openai.cmd"
+cd /d "!PRODUCT!" || exit /b 1
+call "!PRODUCT!\scripts\verify-live-openai.cmd"
 if errorlevel 1 (
   echo.
   echo ERROR: OpenAI API verification failed.
@@ -237,9 +237,9 @@ exit /b 0
 :run_root_check
 echo.
 echo Running NEXUS product check script...
-cd /d "%ROOT%" || exit /b 1
-if exist "%ROOT%scripts\check-all.cmd" (
-  call "%ROOT%scripts\check-all.cmd"
+cd /d "!ROOT!" || exit /b 1
+if exist "!ROOT!scripts\check-all.cmd" (
+  call "!ROOT!scripts\check-all.cmd"
   if errorlevel 1 (
     echo.
     echo WARNING: Product check reported a problem.
@@ -254,8 +254,8 @@ exit /b 0
 :start_offline_stack
 echo.
 echo Starting NEXUS-RESOLVE demo SNOW/local stack...
-cd /d "%PRODUCT%" || exit /b 1
-call "%PRODUCT%\scripts\start-demo.cmd"
+cd /d "!PRODUCT!" || exit /b 1
+call "!PRODUCT!\scripts\start-demo.cmd"
 if errorlevel 1 (
   echo.
   echo ERROR: NEXUS-RESOLVE demo startup failed.

@@ -1,12 +1,14 @@
 @echo off
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 
-cd /d "%~dp0" || exit /b 1
+set "ROOT=%~dp0"
+
+cd /d "!ROOT!" || exit /b 1
 
 if /I "%~1"=="--dry-run" (
-  call "%~dp0start_demo.bat" --dry-run
+  call "!ROOT!start_demo.bat" --dry-run
   exit /b %errorlevel%
 )
 
-call "%~dp0start_demo.bat" --openai
+call "!ROOT!start_demo.bat" --openai
 exit /b %errorlevel%

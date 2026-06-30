@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 
 set "ROOT=%~dp0.."
 set "BACKEND=%ROOT%\services\backend"
@@ -8,7 +8,7 @@ set "PYTHON=%BACKEND%\.venv\Scripts\python.exe"
 set "NPM_CMD="
 
 echo NEXUS-RESOLVE local judge demo launcher
-echo Root: %ROOT%
+echo Root: !ROOT!
 echo.
 
 call :ensure_local_setup
@@ -48,13 +48,13 @@ echo Use scripts\live-servicenow-demo.cmd only when real PDI credentials are con
 exit /b 0
 
 :ensure_local_setup
-if exist "%PYTHON%" (
-  if exist "%DASHBOARD%\node_modules\.bin\vite.cmd" (
+if exist "!PYTHON!" (
+  if exist "!DASHBOARD!\node_modules\.bin\vite.cmd" (
     exit /b 0
   )
 )
 echo First run setup required. Running scripts\setup-all.cmd...
-call "%ROOT%\scripts\setup-all.cmd"
+call "!ROOT!\scripts\setup-all.cmd"
 if errorlevel 1 (
   echo.
   echo Automatic setup failed. Install Python 3.11+ and Node.js 20+, then rerun this script.
@@ -122,7 +122,7 @@ call :stop_port 8000
 timeout /t 2 /nobreak >nul
 :start_backend
 echo Starting backend on 8000...
-start "NEXUS backend" /D "%BACKEND%" cmd /k "set APP_MODE=mock&& .venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
+start "NEXUS backend" /D "!BACKEND!" cmd /k "set APP_MODE=mock&& .venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
 exit /b 0
 
 :ensure_dashboard
@@ -138,7 +138,7 @@ if "%errorlevel%"=="0" (
   timeout /t 2 /nobreak >nul
 )
 echo Starting dashboard on 5173...
-start "NEXUS dashboard" /D "%DASHBOARD%" cmd /k ""%NPM_CMD%" run dev -- --host localhost --port 5173"
+start "NEXUS dashboard" /D "!DASHBOARD!" cmd /k ""!NPM_CMD!" run dev -- --host localhost --port 5173"
 exit /b 0
 
 :ensure_deep_dive
@@ -153,7 +153,7 @@ if not errorlevel 1 (
   exit /b 1
 )
 echo Starting deep-dive page on 5174...
-start "NEXUS deep dive" /D "%ROOT%" cmd /k ""%PYTHON%" -m http.server 5174 --bind 127.0.0.1"
+start "NEXUS deep dive" /D "!ROOT!" cmd /k ""!PYTHON!" -m http.server 5174 --bind 127.0.0.1"
 exit /b 0
 
 :ensure_local_snow
@@ -168,5 +168,5 @@ if not errorlevel 1 (
   exit /b 1
 )
 echo Starting Local SNOW page on 5177...
-start "NEXUS Local SNOW" /D "%ROOT%" cmd /k ""%PYTHON%" -m http.server 5177 --bind 127.0.0.1"
+start "NEXUS Local SNOW" /D "!ROOT!" cmd /k ""!PYTHON!" -m http.server 5177 --bind 127.0.0.1"
 exit /b 0
