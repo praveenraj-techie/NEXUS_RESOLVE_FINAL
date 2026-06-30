@@ -70,6 +70,8 @@ echo MODE 1: OFFLINE DEMO
 echo ============================================================
 echo This runs the safe local fallback demo and opens all judge tabs.
 echo.
+call :ensure_local_setup
+if errorlevel 1 goto failed
 call :run_root_check
 call :start_offline_stack
 if errorlevel 1 goto failed
@@ -87,6 +89,8 @@ echo Then it opens the safe demo SNOW/local judge stack.
 echo Real ServiceNow is not required for this mode.
 echo.
 call :choose_openai_key
+if errorlevel 1 goto failed
+call :ensure_local_setup
 if errorlevel 1 goto failed
 call :verify_openai
 if errorlevel 1 goto failed
@@ -116,6 +120,8 @@ if errorlevel 2 (
   goto main_menu
 )
 call :choose_openai_key
+if errorlevel 1 goto failed
+call :ensure_local_setup
 if errorlevel 1 goto failed
 call :run_root_check
 echo.
@@ -163,6 +169,37 @@ if not defined OPENAI_API_KEY (
   pause
   exit /b 1
 )
+exit /b 0
+
+:ensure_local_setup
+echo.
+echo Checking local first-run setup...
+if exist "%PRODUCT%\services\backend\.venv\Scripts\python.exe" (
+  if exist "%PRODUCT%\apps\dashboard\node_modules\.bin\vite.cmd" (
+    echo Local Python environment and dashboard packages are ready.
+    exit /b 0
+  )
+)
+echo First run detected. Installing local project dependencies now.
+echo This creates services\backend\.venv and apps\dashboard\node_modules.
+echo It can take a few minutes on a new machine.
+echo.
+if not exist "%PRODUCT%\scripts\setup-all.cmd" (
+  echo ERROR: setup-all.cmd was not found under:
+  echo   %PRODUCT%\scripts
+  pause
+  exit /b 1
+)
+cd /d "%PRODUCT%" || exit /b 1
+call "%PRODUCT%\scripts\setup-all.cmd"
+if errorlevel 1 (
+  echo.
+  echo ERROR: Automatic first-run setup failed.
+  echo Install Python 3.11+ and Node.js 20+, then rerun start_demo.bat.
+  pause
+  exit /b 1
+)
+echo First-run setup completed.
 exit /b 0
 
 :verify_openai

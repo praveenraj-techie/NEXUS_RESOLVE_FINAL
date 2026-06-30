@@ -4,22 +4,15 @@ setlocal
 set "ROOT=%~dp0.."
 set "BACKEND=%ROOT%\services\backend"
 set "DASHBOARD=%ROOT%\apps\dashboard"
+set "PYTHON=%BACKEND%\.venv\Scripts\python.exe"
 set "NPM_CMD="
 
 echo NEXUS-RESOLVE local judge demo launcher
 echo Root: %ROOT%
 echo.
 
-if not exist "%BACKEND%\.venv\Scripts\python.exe" (
-  echo Backend virtual environment is missing. Run scripts\setup-all.cmd first.
-  exit /b 1
-)
-
-where python >nul 2>nul
-if errorlevel 1 (
-  echo Python was not found on PATH.
-  exit /b 1
-)
+call :ensure_local_setup
+if errorlevel 1 exit /b 1
 
 for /f "delims=" %%I in ('where npm.cmd 2^>nul') do if not defined NPM_CMD set "NPM_CMD=%%I"
 if not defined NPM_CMD if exist "C:\Program Files\nodejs\npm.cmd" set "NPM_CMD=C:\Program Files\nodejs\npm.cmd"
@@ -52,6 +45,21 @@ echo   E2E proof:  scripts\run-e2e.cmd
 echo.
 echo This launcher forces APP_MODE=mock for the no-ServiceNow judge demo.
 echo Use scripts\live-servicenow-demo.cmd only when real PDI credentials are configured.
+exit /b 0
+
+:ensure_local_setup
+if exist "%PYTHON%" (
+  if exist "%DASHBOARD%\node_modules\.bin\vite.cmd" (
+    exit /b 0
+  )
+)
+echo First run setup required. Running scripts\setup-all.cmd...
+call "%ROOT%\scripts\setup-all.cmd"
+if errorlevel 1 (
+  echo.
+  echo Automatic setup failed. Install Python 3.11+ and Node.js 20+, then rerun this script.
+  exit /b 1
+)
 exit /b 0
 
 :wait_url
@@ -145,7 +153,7 @@ if not errorlevel 1 (
   exit /b 1
 )
 echo Starting deep-dive page on 5174...
-start "NEXUS deep dive" /D "%ROOT%" cmd /k "python -m http.server 5174 --bind 127.0.0.1"
+start "NEXUS deep dive" /D "%ROOT%" cmd /k ""%PYTHON%" -m http.server 5174 --bind 127.0.0.1"
 exit /b 0
 
 :ensure_local_snow
@@ -160,5 +168,5 @@ if not errorlevel 1 (
   exit /b 1
 )
 echo Starting Local SNOW page on 5177...
-start "NEXUS Local SNOW" /D "%ROOT%" cmd /k "python -m http.server 5177 --bind 127.0.0.1"
+start "NEXUS Local SNOW" /D "%ROOT%" cmd /k ""%PYTHON%" -m http.server 5177 --bind 127.0.0.1"
 exit /b 0

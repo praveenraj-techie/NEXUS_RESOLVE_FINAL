@@ -4,12 +4,11 @@ setlocal
 set "ROOT=%~dp0.."
 set "BACKEND=%ROOT%\services\backend"
 set "DASHBOARD=%ROOT%\apps\dashboard"
+set "PYTHON=%BACKEND%\.venv\Scripts\python.exe"
 set "NPM_CMD="
 
-if not exist "%BACKEND%\.venv\Scripts\python.exe" (
-  echo Backend virtual environment is missing. Run scripts\setup-all.cmd first.
-  exit /b 1
-)
+call :ensure_local_setup
+if errorlevel 1 exit /b 1
 
 for /f "delims=" %%I in ('where npm.cmd 2^>nul') do if not defined NPM_CMD set "NPM_CMD=%%I"
 if not defined NPM_CMD if exist "C:\Program Files\nodejs\npm.cmd" set "NPM_CMD=C:\Program Files\nodejs\npm.cmd"
@@ -20,7 +19,7 @@ if not defined NPM_CMD (
 for %%I in ("%NPM_CMD%") do set "NODE_DIR=%%~dpI"
 
 pushd "%BACKEND%" || exit /b 1
-call ".venv\Scripts\python.exe" -m pytest || exit /b %errorlevel%
+call "%PYTHON%" -m pytest || exit /b %errorlevel%
 popd
 
 set "PATH=%NODE_DIR%;%PATH%"
@@ -31,3 +30,20 @@ call "%NPM_CMD%" run build || exit /b %errorlevel%
 popd
 
 echo NEXUS-RESOLVE checks passed.
+
+exit /b 0
+
+:ensure_local_setup
+if exist "%PYTHON%" (
+  if exist "%DASHBOARD%\node_modules\.bin\vite.cmd" (
+    exit /b 0
+  )
+)
+echo First run setup required. Running scripts\setup-all.cmd...
+call "%ROOT%\scripts\setup-all.cmd"
+if errorlevel 1 (
+  echo.
+  echo Automatic setup failed. Install Python 3.11+ and Node.js 20+, then rerun this script.
+  exit /b 1
+)
+exit /b 0

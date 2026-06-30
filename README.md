@@ -26,6 +26,10 @@ Recommended one-command launcher for judges:
 start_demo.bat
 ```
 
+On a fresh ZIP download, this launcher now performs first-run setup
+automatically. It creates the backend virtual environment and installs the
+dashboard packages before it runs checks or opens demo tabs.
+
 It prompts for one of three paths:
 
 1. Offline demo with local/demo SNOW only.
