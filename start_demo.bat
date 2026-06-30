@@ -1,6 +1,18 @@
 @echo off
 setlocal EnableExtensions
 
+if /I "%~1"=="--inner" (
+  shift /1
+  goto launcher_body
+)
+
+if /I "%~1"=="--dry-run" goto launcher_body
+if /I "%NEXUS_DEMO_STAY_OPEN%"=="1" goto launcher_body
+
+start "NEXUS-RESOLVE Demo Launcher" cmd /k ""%~f0" --inner %*"
+exit /b 0
+
+:launcher_body
 set "ROOT=%~dp0"
 set "PRODUCT=%ROOT%"
 set "DEFAULT_OPENAI_API_KEY="
@@ -30,6 +42,8 @@ if not exist "%PRODUCT%\scripts\start-demo.cmd" (
   echo   %PRODUCT%
   echo.
   echo Make sure this file is in the NEXUS_RESOLVE_FINAL project root.
+  echo If you opened it from inside the downloaded ZIP, extract the ZIP first,
+  echo then run start_demo.bat from the extracted folder.
   pause
   exit /b 1
 )
@@ -187,6 +201,9 @@ echo.
 if not exist "%PRODUCT%\scripts\setup-all.cmd" (
   echo ERROR: setup-all.cmd was not found under:
   echo   %PRODUCT%\scripts
+  echo.
+  echo If you opened this from inside the downloaded ZIP, extract the ZIP first,
+  echo then run start_demo.bat from the extracted folder.
   pause
   exit /b 1
 )

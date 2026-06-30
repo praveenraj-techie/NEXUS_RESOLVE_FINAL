@@ -26,9 +26,22 @@ Recommended one-command launcher for judges:
 start_demo.bat
 ```
 
+Download the ZIP, right-click it, choose **Extract All**, then run
+`start_demo.bat` from the extracted folder. Do not run the batch file directly
+from inside the compressed ZIP view.
+
 On a fresh ZIP download, this launcher now performs first-run setup
 automatically. It creates the backend virtual environment and installs the
 dashboard packages before it runs checks or opens demo tabs.
+
+Double-clicking `start_demo.bat` opens a persistent Command Prompt window, so
+startup errors stay visible instead of closing immediately. If you run it from
+an already-open terminal and do not want a second window, use:
+
+```bat
+set NEXUS_DEMO_STAY_OPEN=1
+start_demo.bat
+```
 
 It prompts for one of three paths:
 
